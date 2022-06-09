@@ -1,7 +1,8 @@
-## https://github.com/joaossmacedo/TicTacToe/blob/master/Tree.py
 from anytree import Node, RenderTree
+## Searching: https://anytree.readthedocs.io/en/2.6.0/api/anytree.search.html
+## 
 
-def getNextStates(
+def getNextNodes(
     node: Node,
     depth: int,
     apl: int, apr: int,
@@ -27,40 +28,34 @@ def getNextStates(
       if depth % 2 == 0:
         ## player 1 -> 2
         list_next_nodes.append(
-          Node(
-            (ap_hands + wp_hands),
-            parent = node
-          )
+          Node((ap_hands + wp_hands), parent=node)
         )
       else:
         ## player 2 -> 1
         list_next_nodes.append(
-          Node(
-            (wp_hands + ap_hands),
-            parent = node
-          )
+          Node((wp_hands + ap_hands), parent=node)
         )
   return list_next_nodes
 
 class GameTree():
-  def __init__(self):
+  def __init__(self, max_depth=10):
     self.root = None
-    self.tree_height = 0
+    self.max_depth = max_depth
+    self.height = 0
+  def renderTree(self):
+    a = 10
   def printTree(self):
-    for pre, fill, node in RenderTree(self.root):
+    for pre, _, node in RenderTree(self.root):
       print("{}{}".format(pre, node.name))
   def simulate(self):
     self.root = Node([1,1,1,1])
     self.__auxSimulate(self.root, 0)
+    self.height = self.root.height
   def __auxSimulate(
       self,
       node: Node,
       depth: int
     ):
-    # print("P{}: {} {}".format(
-    #   "~" if depth == 0 else "1" if depth % 2 == 1 else "2",
-    #   node.name, depth
-    # ))
     ## extract player hands and apply game rules
     p1l = node.name[0]
     p1r = node.name[1]
@@ -72,12 +67,12 @@ class GameTree():
     if bool_p1_lost or bool_p2_lost:
       return
     ## trim branches at a particular depth
-    if depth >= MAX_DEPTH:
+    if depth >= self.max_depth:
       return
     ## identify all next possible moves
     ## player 1 -> 2
     if depth % 2 == 0:
-      list_next_nodes = getNextStates(
+      list_next_nodes = getNextNodes(
         node  = node,
         apl   = p1l,
         apr   = p1r,
@@ -87,7 +82,7 @@ class GameTree():
       )
     ## player 2 -> 1
     else:
-      list_next_nodes = getNextStates(
+      list_next_nodes = getNextNodes(
         node  = node,
         apl   = p2l,
         apr   = p2r,
@@ -97,15 +92,16 @@ class GameTree():
       )
     ## progress tree traversal and evaluate those possible options
     for branch_index in range(len(list_next_nodes)):
+      next_node = list_next_nodes[branch_index]
+      ## TODO: check if this branch merges with any others (i.e., 1, 1, 3, 2)
+      ## find branches from this point
       self.__auxSimulate(
-        node  = list_next_nodes[branch_index],
+        node  = next_node,
         depth = depth+1
       )
 
-MAX_DEPTH = 10
-
 def main():
-  game = GameTree()
+  game = GameTree(6)
   game.simulate()
   game.printTree()
 
