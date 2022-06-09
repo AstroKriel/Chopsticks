@@ -1,19 +1,12 @@
-from anytree import Node, RenderTree
+import matplotlib.pyplot as plt
+import networkx as nx
 
 if __name__ == "__main__":
-  udo  = Node("Udo")
-  marc = Node("Marc", parent=udo)
-  lian = Node("Lian", parent=marc)
-  dan  = Node("Dan",  parent=udo)
-  jet  = Node("Jet",  parent=dan)
-  jan  = Node("Jan",  parent=dan)
-  joe  = Node("Joe",  parent=dan)
-  print(udo)
-  print(joe)
-  for pre, fill, node in RenderTree(udo):
-    print("{}{}".format(
-      pre, node.name
-    ))
-  print(dan.children)
+  G = nx.balanced_tree(3, 5)
+  pos = nx.nx_agraph.graphviz_layout(G, prog="twopi", args="")
+  _, ax = plt.subplots(figsize=(8, 8))
+  nx.draw(G, pos, node_size=20, alpha=0.5, node_color="blue", with_labels=False)
+  ax.axis("equal")
+  plt.show()
 
 ## END OF DEMO

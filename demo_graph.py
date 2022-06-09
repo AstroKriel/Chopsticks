@@ -1,28 +1,30 @@
 import networkx as nx
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
-seed = 13648 # Seed random number generators for reproducibility
-G = nx.random_k_out_graph(10, 3, 0.5, seed=seed)
-pos = nx.spring_layout(G, seed=seed)
-cmap = plt.cm.plasma
+def main():
+  n = 5  # the number of children for each node 
+  depth = 3 # number of levels, starting from 0
 
-nodes = nx.draw_networkx_nodes(G, pos, node_size=15, node_color="indigo")
-edges = nx.draw_networkx_edges(
-  G,
-  pos,
-  node_size=10,
-  arrowstyle="->",
-  arrowsize=10,
-  edge_color="black",
-  edge_cmap=cmap,
-  width=2,
-)
-pc = mpl.collections.PatchCollection(edges, cmap=cmap)
-plt.colorbar(pc)
+  # initialize tree and root
+  G = nx.Graph()
+  G.add_node(1)
 
-ax = plt.gca()
-ax.set_axis_off()
-plt.show()
+  ulim = 0
+  for level in range(depth): # loop over each level
+    nl = n**level # number of nodes on a given level
+    llim = ulim + 1 # index of first node on a given level 
+    ulim = ulim + nl # index of last node on a given level
+    for i in range(nl): # loop over nodes (parents) on a given level
+      parent = llim + i
+      offset = ulim + i * n + 1 # index pointing to node just before first child
+      for j in range(n): # loop over children for a given node (parent)
+        child = offset + j
+        G.add_node(child)
+        G.add_edge(parent, child)
+        # show the results
+        print("{:d}-{:d}".format(parent, child))
+    print("---------")
+
+if __name__ == "__main__":
+  main()
 
 ## END OF DEMO
