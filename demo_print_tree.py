@@ -5,15 +5,15 @@ class Node:
     self.right = None
 
 def printLevelOrder(root):
-  queue = []
-  queue.append(root)
-  while len(queue) > 0:
-    print(queue[0].data)
-    node = queue.pop(0)
+  queue_nodes = []
+  queue_nodes.append(root)
+  while len(queue_nodes) > 0:
+    print(queue_nodes[0].data)
+    node = queue_nodes.pop(0)
     if node.left is not None:
-      queue.append(node.left)
+      queue_nodes.append(node.left)
     if node.right is not None:
-      queue.append(node.right)
+      queue_nodes.append(node.right)
 
 root = Node(1)
 root.left = Node(2)

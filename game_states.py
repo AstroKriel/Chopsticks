@@ -65,7 +65,7 @@ class GameTree():
       count += 1
       bfi   = "-"
       dfi   = "-"
-      if isinstance(node.name, list):
+      if not "x" in node.name:
         bfi, _ = BreadthFirstFuncs.findNodeIndex(self.root, node.name)
         dfi, _ = PreOrderFuncs.findNodeIndex(self.root, node.name, 0)
       str_tree_info  = f"{pre}{node.depth}: {node.name}"
@@ -81,11 +81,61 @@ class GameTree():
 
   def __auxSimulateBreadthFirst(
       self,
-      node: Node,
-      depth: int
+      root: Node
     ):
     ## TODO: so BFI can be accurately calculated from within the simulation
-    a = 10
+    depth = 0
+    node_parent = root
+    queue_hands = []
+    queue_hands.append(root.name)
+    while len(queue_hands) > 0:
+      ## extract player hands and apply game rules
+      p1l = queue_hands[0][0]
+      p1r = queue_hands[0][1]
+      p2l = queue_hands[0][2]
+      p2r = queue_hands[0][3]
+      ## check end game requirements
+      bool_p1_lost = (p1l == 0) and (p1r == 0)
+      bool_p2_lost = (p2l == 0) and (p2r == 0)
+      if bool_p1_lost or bool_p2_lost:
+        return
+      ## trim branches at a particular depth
+      if depth >= self.max_depth:
+        return
+      ## check if hands have appeared before
+      ## create node
+      ## udpate who the parent node is (not sure this is the right spot)
+      ## progress game
+      depth += 1
+      ## identify all next possible moves
+      if depth % 2 == 0:
+        ## player 1 -> 2
+        list_next_hands = getNextNodes(
+          apl   = p1l,
+          apr   = p1r,
+          wpl   = p2l,
+          wpr   = p2r,
+          depth = depth
+        )
+      else:
+        ## player 2 -> 1
+        list_next_hands = getNextNodes(
+          apl   = p2l,
+          apr   = p2r,
+          wpl   = p1l,
+          wpr   = p1r,
+          depth = depth
+        )
+      for branch_index in range(len(list_next_hands)):
+        next_hands = list_next_hands[branch_index]
+    # ## store the breath-first search index of the node that this branch merges with
+    # bfi, _ = BreadthFirstFuncs.findNodeIndex(self.root, next_hands)
+    # ## DEBUG: finding breadth first index
+    # if next_hands == [4, 1, 3, 2]:
+    #   print(next_hands)
+    #   BreadthFirstFuncs.printTreeUpToIndex(self.root, bfi)
+    #   BreadthFirstFuncs.findNodeIndex(self.root, next_hands, True)
+    #   print(" ")
 
   def __auxSimulateDepthFirst(
       self,
@@ -129,15 +179,7 @@ class GameTree():
       next_hands = list_next_hands[branch_index]
       ## check if this branch merges with any previous node
       if PreOrderFuncs.checkNodeOccurance(self.root, next_hands):
-        # ## store the breath-first search index of the node that this branch merges with
-        # bfi, _ = BreadthFirstFuncs.findNodeIndex(self.root, next_hands, False)
-        # ## DEBUG: finding breadth first index
-        # if next_hands == [4, 1, 3, 2]:
-        #   print(next_hands)
-        #   BreadthFirstFuncs.printTreeUpToIndex(self.root, bfi)
-        #   BreadthFirstFuncs.findNodeIndex(self.root, next_hands, True)
-        #   print(" ")
-        # Node(f"x, {bfi}, {next_hands}", parent=node)
+        Node(f"x, {next_hands}", parent=node)
         continue
       ## find any new unique child nodes that branch off from this point
       self.__auxSimulateDepthFirst(
