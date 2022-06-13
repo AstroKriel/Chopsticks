@@ -2,8 +2,7 @@ from anytree import Node
 
 
 def traverseTree(root: Node):
-  queue_nodes = []
-  queue_nodes.append(root)
+  queue_nodes = [root]
   while len(queue_nodes) > 0:
     ## work with current node
     queue_nodes[0].name
@@ -16,8 +15,7 @@ def printTreeUpToIndex(
     node_index: int
   ):
   index = 0
-  queue_nodes = []
-  queue_nodes.append(root)
+  queue_nodes = [root]
   ## bread first search through tree
   while len(queue_nodes) > 0:
     ## check if the node contents is valid
@@ -39,8 +37,7 @@ def findNodeIndex(
     ref_hands: list
   ):
   index = 0
-  queue_nodes = []
-  queue_nodes.append(root)
+  queue_nodes = [root]
   ## bread first search through tree
   while len(queue_nodes) > 0:
     ## check if the node contents is valid

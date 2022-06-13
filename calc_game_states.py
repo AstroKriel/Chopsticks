@@ -1,7 +1,8 @@
 import sys
 from anytree import Node, RenderTree
 
-import PreOrderFuncs, BreadthFirstFuncs
+import library.pre_order as PreOrder
+import library.breadth_first as BreadthFirst
 
 # ## template for debugging
 # import pdb; pdb.set_trace()
@@ -10,34 +11,34 @@ import PreOrderFuncs, BreadthFirstFuncs
 ## ###############################################################
 ## FUNCTION: GENERATE NEXT GAME STATES
 ## ###############################################################
-def getNextNodes(
+def getNextStates(
     depth: int,
-    apl: int, apr: int,
-    wpl: int, wpr: int
+    ap_hands: list, # active player
+    wp_hands: list  # waiting player
   ):
-  list_next_hands = []
-  ap_hands = [apl, apr] # active player
+  list_next_states = []
   ## check if either of the two players have the same number of fingers on both their hands
-  num_hands_to_attack_with = 1 if (apl == apr) else 2
-  num_hands_to_attack      = 1 if (wpl == wpr) else 2
+  num_hands_to_attack_with = 1 if (ap_hands[0] == ap_hands[1]) else 2
+  num_hands_to_attack      = 1 if (wp_hands[0] == wp_hands[1]) else 2
   ## create a list of the next possible hands
   for ap_hand_index in range(num_hands_to_attack_with):
     ## player can't attack with a hand that has zero fingers
     if ap_hands[ap_hand_index] == 0:
       continue
     for wp_hand_index in range(num_hands_to_attack):
-      wp_hands = [wpl, wpr] # waiting player
       ## attacking player can't add to a hand that has zero fingers
       if wp_hands[wp_hand_index] == 0:
         continue
+      ## active player performs one of the possible next moves
       wp_hands[wp_hand_index] = (wp_hands[wp_hand_index] + ap_hands[ap_hand_index]) % 5
       if depth % 2 == 0:
         ## player 1 -> 2
-        list_next_hands.append( (ap_hands + wp_hands) )
+        list_next_states.append( (ap_hands + wp_hands) )
       else:
         ## player 2 -> 1
-        list_next_hands.append( (wp_hands + ap_hands) )
-  return list_next_hands
+        list_next_states.append( (wp_hands + ap_hands) )
+  ## return next possible hands
+  return list_next_states
 
 
 ## ###############################################################
@@ -45,14 +46,14 @@ def getNextNodes(
 ## ###############################################################
 class GameTree():
   def __init__(self, max_depth=10):
-    self.root = None
+    self.root      = None
     self.max_depth = max_depth
     self.height    = 0
     self.num_nodes = 0
 
-  def renderTree(self):
-    self.list_nodes = []
-    PreOrderFuncs.getTreeNodes(self.root, self.list_nodes)
+  # def renderTree(self):
+  #   self.nodes = []
+  #   PreOrder.getTreeNodes(self.root, self.nodes)
 
   def printTree(self):
     count = 0
@@ -66,8 +67,8 @@ class GameTree():
       bfi   = "-"
       dfi   = "-"
       if not "x" in node.name:
-        bfi, _ = BreadthFirstFuncs.findNodeIndex(self.root, node.name)
-        dfi, _ = PreOrderFuncs.findNodeIndex(self.root, node.name, 0)
+        bfi, _ = BreadthFirst.findNodeIndex(self.root, node.name)
+        dfi, _ = PreOrder.findNodeIndex(self.root, node.name, 0)
       str_tree_info  = f"{pre}{node.depth}: {node.name}"
       str_tree_indxs = f"({bfi}),".ljust(7) + f"({dfi})"
       print(str_tree_info.ljust(50), str_tree_indxs)
@@ -75,66 +76,75 @@ class GameTree():
 
   def simulate(self):
     self.root = Node([1,1,1,1])
-    self.__auxSimulateDepthFirst(self.root, 0)
+    # self.__auxSimulateDepthFirst(self.root, 0)
+    self.__auxSimulateBreadthFirst(self.root)
     self.height    = self.root.height + 1
-    self.num_nodes = PreOrderFuncs.countTreeNodes(self.root, 0)
+    self.num_nodes = PreOrder.countTreeNodes(self.root, 0)
 
   def __auxSimulateBreadthFirst(
       self,
       root: Node
     ):
-    ## TODO: so BFI can be accurately calculated from within the simulation
-    depth = 0
-    node_parent = root
-    queue_hands = []
-    queue_hands.append(root.name)
-    while len(queue_hands) > 0:
-      ## extract player hands and apply game rules
-      p1l = queue_hands[0][0]
-      p1r = queue_hands[0][1]
-      p2l = queue_hands[0][2]
-      p2r = queue_hands[0][3]
+    queue = []
+    list_next_states = getNextStates(
+      ap_hands = root.name[:2],
+      wp_hands = root.name[2:],
+      depth    = 0
+    )
+    for next_state in list_next_states:
+      queue.append({
+        "depth": 1,
+        "next_state": next_state,
+        "parent_node": self.root
+      })
+    while len(queue) > 0:
+      depth       = queue[0]["depth"]
+      next_state  = queue[0]["next_state"]
+      parent_node = queue[0]["parent_node"]
+      ## check if the state has occured before
+      if PreOrder.checkNodeOccurance(self.root, next_state):
+        Node(f"x, {next_state}", parent=parent_node)
+        queue.pop(0)
+        continue
+      node = Node(next_state, parent=parent_node)
       ## check end game requirements
-      bool_p1_lost = (p1l == 0) and (p1r == 0)
-      bool_p2_lost = (p2l == 0) and (p2r == 0)
+      bool_p1_lost = (next_state[0] == 0) and (next_state[1] == 0)
+      bool_p2_lost = (next_state[2] == 0) and (next_state[3] == 0)
       if bool_p1_lost or bool_p2_lost:
-        return
+        queue.pop(0)
+        continue
       ## trim branches at a particular depth
-      if depth >= self.max_depth:
+      if depth >= (self.max_depth + 1):
         return
-      ## check if hands have appeared before
-      ## create node
-      ## udpate who the parent node is (not sure this is the right spot)
-      ## progress game
-      depth += 1
       ## identify all next possible moves
       if depth % 2 == 0:
         ## player 1 -> 2
-        list_next_hands = getNextNodes(
-          apl   = p1l,
-          apr   = p1r,
-          wpl   = p2l,
-          wpr   = p2r,
-          depth = depth
+        list_next_states = getNextStates(
+          ap_hands = next_state[:2],
+          wp_hands = next_state[2:],
+          depth    = depth
         )
       else:
         ## player 2 -> 1
-        list_next_hands = getNextNodes(
-          apl   = p2l,
-          apr   = p2r,
-          wpl   = p1l,
-          wpr   = p1r,
-          depth = depth
+        list_next_states = getNextStates(
+          ap_hands = next_state[2:],
+          wp_hands = next_state[:2],
+          depth    = depth
         )
-      for branch_index in range(len(list_next_hands)):
-        next_hands = list_next_hands[branch_index]
+      queue.pop(0)
+      for next_state in list_next_states:
+        queue.append({
+          "depth": depth+1,
+          "next_state": next_state,
+          "parent_node": node
+        })
     # ## store the breath-first search index of the node that this branch merges with
-    # bfi, _ = BreadthFirstFuncs.findNodeIndex(self.root, next_hands)
+    # bfi, _ = BreadthFirst.findNodeIndex(self.root, list_next_states)
     # ## DEBUG: finding breadth first index
-    # if next_hands == [4, 1, 3, 2]:
-    #   print(next_hands)
-    #   BreadthFirstFuncs.printTreeUpToIndex(self.root, bfi)
-    #   BreadthFirstFuncs.findNodeIndex(self.root, next_hands, True)
+    # if list_next_states == [4, 1, 3, 2]:
+    #   print(list_next_states)
+    #   BreadthFirst.printTreeUpToIndex(self.root, bfi)
+    #   BreadthFirst.findNodeIndex(self.root, list_next_states, True)
     #   print(" ")
 
   def __auxSimulateDepthFirst(
@@ -142,48 +152,39 @@ class GameTree():
       node: Node,
       depth: int
     ):
-    ## extract player hands and apply game rules
-    p1l = node.name[0]
-    p1r = node.name[1]
-    p2l = node.name[2]
-    p2r = node.name[3]
     ## check end game requirements
-    bool_p1_lost = (p1l == 0) and (p1r == 0)
-    bool_p2_lost = (p2l == 0) and (p2r == 0)
+    bool_p1_lost = (node.name[0] == 0) and (node.name[1] == 0)
+    bool_p2_lost = (node.name[2] == 0) and (node.name[3] == 0)
     if bool_p1_lost or bool_p2_lost:
       return
-    ## trim branches at a particular depth
+    ## stop searching at a particular branch-depth
     if depth >= self.max_depth:
       return
     ## identify all next possible moves
     if depth % 2 == 0:
       ## player 1 -> 2
-      list_next_hands = getNextNodes(
-        apl   = p1l,
-        apr   = p1r,
-        wpl   = p2l,
-        wpr   = p2r,
-        depth = depth
+      list_next_states = getNextStates(
+        ap_hands = node.name[:2],
+        wp_hands = node.name[2:],
+        depth    = depth
       )
     else:
       ## player 2 -> 1
-      list_next_hands = getNextNodes(
-        apl   = p2l,
-        apr   = p2r,
-        wpl   = p1l,
-        wpr   = p1r,
-        depth = depth
+      list_next_states = getNextStates(
+        ap_hands = node.name[2:],
+        wp_hands = node.name[:2],
+        depth    = depth
       )
     ## progress tree traversal and evaluate those possible options
-    for branch_index in range(len(list_next_hands)):
-      next_hands = list_next_hands[branch_index]
+    for next_state in list_next_states:
       ## check if this branch merges with any previous node
-      if PreOrderFuncs.checkNodeOccurance(self.root, next_hands):
-        Node(f"x, {next_hands}", parent=node)
+      if PreOrder.checkNodeOccurance(self.root, next_state):
+        ## generate child node and inidcate it is a duplicate state
+        Node(f"x, {next_state}", parent=node)
         continue
       ## find any new unique child nodes that branch off from this point
       self.__auxSimulateDepthFirst(
-        node  = Node(next_hands, parent=node),
+        node  = Node(next_state, parent=node),
         depth = depth+1
       )
 
@@ -195,7 +196,6 @@ def main():
   game = GameTree(6)
   game.simulate()
   game.printTree()
-  # game.renderTree()
 
 
 ## ###############################################################
