@@ -1,8 +1,8 @@
 import sys
 from anytree import Node, RenderTree
 
-import library.pre_order as PreOrder
-import library.breadth_first as BreadthFirst
+import MyLibrary.PreOrder as PreOrder
+import MyLibrary.BreadthFirst as BreadthFirst
 
 # ## template for debugging
 # import pdb; pdb.set_trace()
