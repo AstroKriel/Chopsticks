@@ -19,7 +19,7 @@ def printTreeUpToIndex(
   ## bread first search through tree
   while len(queue_nodes) > 0:
     ## check if the node contents is valid
-    bool_node_valid = not "x" in queue_nodes[0].name
+    bool_node_valid = isinstance(queue_nodes[0].name, list)
     if bool_node_valid:
       print(index, queue_nodes[0].name)
     ## check if the desired node index has been reached
@@ -32,6 +32,18 @@ def printTreeUpToIndex(
     for child in queue_nodes.pop(0).children:
       queue_nodes.append(child)
 
+def getTreeNodes(
+    root: Node,
+    list_nodes: list
+  ):
+  queue_nodes = [root]
+  while len(queue_nodes) > 0:
+    ## append current node
+    list_nodes.append(queue_nodes[0].name)
+    ## look at child-nodes and remove parent
+    for child in queue_nodes.pop(0).children:
+      queue_nodes.append(child)
+
 def findNodeIndex(
     root: Node,
     ref_hands: list
@@ -41,7 +53,7 @@ def findNodeIndex(
   ## bread first search through tree
   while len(queue_nodes) > 0:
     ## check if the node contents is valid
-    bool_node_valid = not "x" in queue_nodes[0].name
+    bool_node_valid = isinstance(queue_nodes[0].name, list)
     ## check if the contents of the current node in the branch matches the reference
     if queue_nodes[0].name == ref_hands:
       return index, True

@@ -13,7 +13,7 @@ import library.breadth_first as BreadthFirst
 ## ###############################################################
 def getNextStates(
     depth: int,
-    ap_hands: list, # active player
+    ap_hands: list, # attacking player
     wp_hands: list  # waiting player
   ):
   list_next_states = []
@@ -51,13 +51,25 @@ class GameTree():
     self.height    = 0
     self.num_nodes = 0
 
-  # def renderTree(self):
-  #   self.nodes = []
-  #   PreOrder.getTreeNodes(self.root, self.nodes)
+  def renderTree(self):
+    self.list_nodes = []
+    self.list_dfi   = []
+    PreOrder.getTreeNodes(
+      node       = self.root,
+      list_nodes = self.list_nodes,
+      list_depth = self.list_dfi,
+      index      = 0
+    )
+    if BOOL_DEBUG:
+      print(self.list_nodes)
+      print(" ")
+      print(self.list_dfi)
+
 
   def printTree(self):
+    num_chars = 60
     count = 0
-    str_header_info  = "(depth): (player hands)".ljust(50)
+    str_header_info  = "(depth): (player hands)".ljust(num_chars)
     str_header_indxs = "(BFI), (DFI)"
     str_border = "=" * (len(str_header_info) + len(str_header_indxs) + 1)
     print(str_header_info, str_header_indxs)
@@ -66,12 +78,12 @@ class GameTree():
       count += 1
       bfi   = "-"
       dfi   = "-"
-      if not "x" in node.name:
+      if isinstance(node.name, list):
         bfi, _ = BreadthFirst.findNodeIndex(self.root, node.name)
         dfi, _ = PreOrder.findNodeIndex(self.root, node.name, 0)
       str_tree_info  = f"{pre}{node.depth}: {node.name}"
       str_tree_indxs = f"({bfi}),".ljust(7) + f"({dfi})"
-      print(str_tree_info.ljust(50), str_tree_indxs)
+      print(str_tree_info.ljust(num_chars), str_tree_indxs)
     print(" ")
 
   def simulate(self):
@@ -103,7 +115,11 @@ class GameTree():
       parent_node = queue[0]["parent_node"]
       ## check if the state has occured before
       if PreOrder.checkNodeOccurance(self.root, next_state):
-        Node(f"x, {next_state}", parent=parent_node)
+        ## generate child node and inidcate it is a duplicate state
+        bfi, _ = BreadthFirst.findNodeIndex(self.root, next_state)
+        if BOOL_DEBUG:
+          Node(f"{bfi}, {next_state}", parent=parent_node)
+        else: Node(f"{bfi}", parent=parent_node)
         queue.pop(0)
         continue
       node = Node(next_state, parent=parent_node)
@@ -138,14 +154,6 @@ class GameTree():
           "next_state": next_state,
           "parent_node": node
         })
-    # ## store the breath-first search index of the node that this branch merges with
-    # bfi, _ = BreadthFirst.findNodeIndex(self.root, list_next_states)
-    # ## DEBUG: finding breadth first index
-    # if list_next_states == [4, 1, 3, 2]:
-    #   print(list_next_states)
-    #   BreadthFirst.printTreeUpToIndex(self.root, bfi)
-    #   BreadthFirst.findNodeIndex(self.root, list_next_states, True)
-    #   print(" ")
 
   def __auxSimulateDepthFirst(
       self,
@@ -180,7 +188,9 @@ class GameTree():
       ## check if this branch merges with any previous node
       if PreOrder.checkNodeOccurance(self.root, next_state):
         ## generate child node and inidcate it is a duplicate state
-        Node(f"x, {next_state}", parent=node)
+        if BOOL_DEBUG:
+          Node(f"x, {next_state}", parent=node)
+        else: Node(f"x", parent=node)
         continue
       ## find any new unique child nodes that branch off from this point
       self.__auxSimulateDepthFirst(
@@ -192,10 +202,13 @@ class GameTree():
 ## ###############################################################
 ## MAIN PROGRAM
 ## ###############################################################
+BOOL_DEBUG = 1
+
 def main():
-  game = GameTree(6)
+  game = GameTree(8)
   game.simulate()
   game.printTree()
+  game.renderTree()
 
 
 ## ###############################################################

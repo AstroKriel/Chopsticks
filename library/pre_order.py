@@ -17,13 +17,19 @@ def printTree(node: Node):
 
 def getTreeNodes(
     node: Node,
-    list_nodes: list
+    list_nodes: list,
+    list_depth: list,
+    index: int
   ):
   ## append current node
   list_nodes.append(node.name)
+  list_depth.append(index)
+  ## increment the node index
+  if isinstance(node.name, list):
+    index += 1
   ## append child-nodes
   for child in node.children:
-    getTreeNodes(child, list_nodes)
+    getTreeNodes(child, list_nodes, list_depth, index)
 
 def countTreeNodes(
     node: Node,
@@ -46,7 +52,7 @@ def findNodeIndex(
   if node.name == ref_hands:
     return index, True
   ## increment the node index
-  if not "x" in node.name:
+  if isinstance(node.name, list):
     index += 1
   ## check if the contents of any of the child-nodes match the reference
   for child in node.children:
