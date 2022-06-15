@@ -32,7 +32,7 @@ def getNextStates(
       if state[wp_index + wp_hand_index] == 0:
         continue
       next_state = state.copy() # copy list without reference
-      ## active player playes one of the possible next moves
+      ## active player plays one of the possible next moves
       next_state[wp_index + wp_hand_index] += next_state[ap_index + ap_hand_index]
       next_state[wp_index + wp_hand_index] %= 5
       list_next_states.append( next_state )
@@ -53,7 +53,7 @@ class GameTree():
   def renderTree(self):
     self.list_nodes = []
     self.list_dfi   = []
-    PreOrder.getTreeNodes(
+    PreOrder.getTreeNodes( # TODO: get at level
       node       = self.root,
       list_nodes = self.list_nodes,
       list_depth = self.list_dfi,
@@ -228,7 +228,7 @@ def main():
   game.simulate()
   game.printTree()
   game.saveTree()
-  # game.renderTree()
+  game.renderTree()
 
 
 ## ###############################################################
