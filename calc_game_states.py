@@ -1,5 +1,6 @@
 import sys
 from anytree import Node, RenderTree
+from dsplot.graph import Graph
 
 import MyLibrary.PreOrder as PreOrder
 import MyLibrary.BreadthFirst as BreadthFirst
@@ -51,14 +52,15 @@ class GameTree():
     self.num_nodes = 0
 
   def renderTree(self):
-    self.list_nodes = []
-    self.list_dfi   = []
-    PreOrder.getTreeNodes( # TODO: get at level
-      node       = self.root,
-      list_nodes = self.list_nodes,
-      list_depth = self.list_dfi,
-      index      = 0
+    self.dict_network = {}
+    BreadthFirst.getTreeNodes(
+      root         = self.root,
+      dict_network = self.dict_network
     )
+    plot_name = f"chopstics_tree_depth={self.max_depth}.pdf"
+    graph = Graph(nodes=self.dict_network, directed=True)
+    graph.plot(plot_name)
+    print("Save figure:", plot_name)
 
   def saveTree(self):
     num_chars = 4*self.height + 23
@@ -66,7 +68,8 @@ class GameTree():
     str_header_indxs = "(BFI), (DFI)\n"
     str_border = "=" * (len(str_header_info) + len(str_header_indxs) + 1) + "\n"
     ## write tree to file
-    with open("chopstics_tree.txt", "w") as txt_file:
+    file_name = f"chopstics_tree_depth={self.max_depth}.txt"
+    with open(file_name, "w") as txt_file:
       for pre, _, node in RenderTree(self.root):
         bfi   = "-"
         dfi   = "-"
@@ -91,6 +94,7 @@ class GameTree():
       txt_file.write(f"Searched up to depth: {self.max_depth}\n")
       txt_file.write(f"Total number of unique states found: {self.num_nodes}\n")
       txt_file.write(f"Number of nodes found on the deepest branch: {self.height}\n")
+    print("Save figure:", file_name)
 
   def printTree(self):
     num_chars = 4*self.height + 23
@@ -120,6 +124,7 @@ class GameTree():
     print(f"Searched up to depth: {self.max_depth}")
     print(f"Total number of unique states found: {self.num_nodes}")
     print(f"Number of nodes found on the deepest branch: {self.height}")
+    print(" ")
 
   def simulate(self):
     self.root = Node([1,1,1,1])
@@ -154,10 +159,11 @@ class GameTree():
       if PreOrder.checkNodeOccurance(self.root, next_state):
         ## generate child node and inidcate it is a duplicate state
         bfi, _ = BreadthFirst.findNodeIndex(self.root, next_state)
-        if BOOL_DEBUG:
-          Node(f"{bfi}, {next_state}", parent=parent_node)
-        else:
-          Node(f"{bfi}", parent=parent_node)
+        if BOOL_STORE_DUPLICATES:
+          if BOOL_DEBUG:
+            Node(f"{bfi}, {next_state}", parent=parent_node)
+          else:
+            Node(f"{bfi}", parent=parent_node)
         queue.pop(0)
         continue
       node = Node(next_state, parent=parent_node)
@@ -205,11 +211,12 @@ class GameTree():
     for next_state in list_next_states:
       ## check if this branch merges with any previous node
       if PreOrder.checkNodeOccurance(self.root, next_state):
-        ## generate child node and inidcate it is a duplicate state
-        if BOOL_DEBUG:
-          Node(f"x, {next_state}", parent=node)
-        else:
-          Node(f"x", parent=node)
+        if BOOL_STORE_DUPLICATES:
+          ## generate child node and inidcate it is a duplicate state
+          if BOOL_DEBUG:
+            Node(f"x, {next_state}", parent=node)
+          else:
+            Node("x", parent=node)
         continue
       ## find any new unique child nodes that branch off from this point
       self.__auxSimulateDepthFirst(
@@ -221,10 +228,11 @@ class GameTree():
 ## ###############################################################
 ## MAIN PROGRAM
 ## ###############################################################
-BOOL_DEBUG = 0
+BOOL_DEBUG            = 0
+BOOL_STORE_DUPLICATES = 0
 
 def main():
-  game = GameTree(20)
+  game = GameTree(15)
   game.simulate()
   game.printTree()
   game.saveTree()

@@ -17,19 +17,19 @@ def printTree(node: Node):
 
 def getTreeNodes(
     node: Node,
-    list_nodes: list,
-    list_depth: list,
-    index: int
+    dict_network: dict
   ):
-  ## append current node
-  list_nodes.append(node.name)
-  list_depth.append(index)
-  ## increment the node index
-  if isinstance(node.name, list):
-    index += 1
+  ## append current node connection to children
+  dict_network.update({
+    str(node.name): [
+      str(child.name)
+      for child in node.children
+      if isinstance(child.name, list)
+    ]
+  })
   ## append child-nodes
   for child in node.children:
-    getTreeNodes(child, list_nodes, list_depth, index)
+    getTreeNodes(child, dict_network)
 
 def countTreeNodes(
     node: Node,
@@ -61,7 +61,7 @@ def findNodeIndex(
     if bool_node_found:
       return child_index, True
   ## none of the nodes matched the reference
-  return -1, False
+  return None, False
 
 def checkNodeOccurance(
     node: Node,
