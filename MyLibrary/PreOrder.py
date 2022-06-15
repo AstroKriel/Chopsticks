@@ -36,7 +36,8 @@ def countTreeNodes(
     num_nodes: int
   ):
   ## count current node
-  num_nodes += 1
+  if isinstance(node.name, list):
+    num_nodes += 1
   ## count child-nodes
   for child in node.children:
     num_nodes = countTreeNodes(child, num_nodes)
