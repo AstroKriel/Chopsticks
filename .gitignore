@@ -1,2 +1,3 @@
-*/__pycache__
+.DS_Store
 __pycache__
+MyLibrary/__pycache__
