@@ -31,8 +31,8 @@ def getNextStates(
       ## player cannot attack a hand that has zero fingers
       if state[wp_index + wp_hand_index] == 0:
         continue
-      ## active player playes one of the possible next moves
       next_state = state.copy() # copy list without reference
+      ## active player playes one of the possible next moves
       next_state[wp_index + wp_hand_index] += next_state[ap_index + ap_hand_index]
       next_state[wp_index + wp_hand_index] %= 5
       list_next_states.append( next_state )
@@ -60,9 +60,41 @@ class GameTree():
       index      = 0
     )
 
+  def saveTree(self):
+    num_chars = 4*self.height + 23
+    str_header_info  = "(turn): (state / prev. occur.)".ljust(num_chars)
+    str_header_indxs = "(BFI), (DFI)\n"
+    str_border = "=" * (len(str_header_info) + len(str_header_indxs) + 1) + "\n"
+    ## write tree to file
+    with open("chopstics_tree.txt", "w") as txt_file:
+      for pre, _, node in RenderTree(self.root):
+        bfi   = "-"
+        dfi   = "-"
+        if isinstance(node.name, list):
+          bfi, _ = BreadthFirst.findNodeIndex(self.root, node.name)
+          dfi, _ = PreOrder.findNodeIndex(self.root, node.name, 0)
+        if (node.depth == 0):
+          str_player = "root"
+        elif (node.depth % 2 == 1):
+          str_player = "P1->2"
+        else: str_player = "P2->1"
+        str_tree_branch  = f"{pre}{str_player}: {node.name}".ljust(num_chars)
+        str_node_info    = f"({bfi}),".ljust(7) + f"({dfi})\n"
+        txt_file.write(str_tree_branch)
+        txt_file.write(str_node_info)
+      ## write tree statistics
+      txt_file.write("\n")
+      txt_file.write(str_border)
+      txt_file.write(str_header_info)
+      txt_file.write(str_header_indxs)
+      txt_file.write("\n")
+      txt_file.write(f"Searched up to depth: {self.max_depth}\n")
+      txt_file.write(f"Total number of unique states found: {self.num_nodes}\n")
+      txt_file.write(f"Number of nodes found on the deepest branch: {self.height}\n")
+
   def printTree(self):
     num_chars = 4*self.height + 23
-    str_header_info  = "(acting player): (state)".ljust(num_chars)
+    str_header_info  = "(turn): (state / prev. occur.)".ljust(num_chars)
     str_header_indxs = "(BFI), (DFI)"
     str_border = "=" * (len(str_header_info) + len(str_header_indxs) + 1)
     ## print tree
@@ -77,9 +109,9 @@ class GameTree():
       elif (node.depth % 2 == 1):
         str_player = "P1->2"
       else: str_player = "P2->1"
-      str_tree_info  = f"{pre}{str_player}: {node.name}"
-      str_tree_indxs = f"({bfi}),".ljust(7) + f"({dfi})"
-      print(str_tree_info.ljust(num_chars), str_tree_indxs)
+      str_tree_branch  = f"{pre}{str_player}: {node.name}".ljust(num_chars)
+      str_node_info    = f"({bfi}),".ljust(7) + f"({dfi})"
+      print(str_tree_branch, str_node_info)
     ## print tree statistics
     print(" ")
     print(str_border)
@@ -195,6 +227,7 @@ def main():
   game = GameTree(20)
   game.simulate()
   game.printTree()
+  game.saveTree()
   # game.renderTree()
 
 
