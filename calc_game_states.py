@@ -67,7 +67,7 @@ class GameTree():
       dict_network = self.dict_network
     )
     graph     = Graph(nodes=self.dict_network, directed=True)
-    plot_name = f"chopstics_tree_linear_depth={self.max_depth}.pdf"
+    plot_name = f"chopstics_tree_linear_depth={self.max_depth}.png"
     graph.plot(plot_name)
     print("Save figure:", plot_name)
 
@@ -101,8 +101,8 @@ class GameTree():
     )
     ax.set_aspect("equal")
     self.__createLegend(ax)
-    plot_name = f"chopstics_tree_circular_depth={self.max_depth}.pdf"
-    fig.savefig(plot_name)
+    plot_name = f"chopstics_tree_circular_depth={self.max_depth}.png"
+    fig.savefig(plot_name, dpi=300)
     print("Save figure:", plot_name)
 
   def __createLegend(self, ax):
@@ -301,7 +301,7 @@ BOOL_DEBUG            = 0
 BOOL_STORE_DUPLICATES = 0
 
 def main():
-  game = GameTree(15)
+  game = GameTree(8)
   game.simulate()
   game.printTree()
   game.saveTree()
