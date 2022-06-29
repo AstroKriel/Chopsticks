@@ -14,7 +14,7 @@ def main():
     },
     directed = True
   )
-  graph.plot("graph.png")
+  graph.plot("dsplot.png")
 
 if __name__ == "__main__":
   main()

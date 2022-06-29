@@ -1,6 +1,5 @@
 from anytree import Node
 
-
 def traverseTree(node: Node):
   ## work with current node
   node.name
@@ -44,24 +43,24 @@ def countTreeNodes(
   ## return count
   return num_nodes
 
-def findNodeIndex(
+def getNodeIndex(
     node: Node,
     ref_hands: list,
     index: int
   ):
   ## check if the contents of the current node in the branch matches the reference
   if node.name == ref_hands:
-    return index, True
+    return index
   ## increment the node index
   if isinstance(node.name, list):
     index += 1
   ## check if the contents of any of the child-nodes match the reference
   for child in node.children:
-    child_index, bool_node_found = findNodeIndex(child, ref_hands, index)
-    if bool_node_found:
-      return child_index, True
+    child_index = getNodeIndex(child, ref_hands, index)
+    if child_index is not None:
+      return child_index
   ## none of the nodes matched the reference
-  return None, False
+  return None
 
 def checkNodeOccurance(
     node: Node,

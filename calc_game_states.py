@@ -1,6 +1,15 @@
+#!/usr/bin/env python3
+
+## ###############################################################
+## MODULES
+## ###############################################################
 import sys
+import networkx as nx
+import matplotlib.pyplot as plt
+
 from anytree import Node, RenderTree
 from dsplot.graph import Graph
+from matplotlib.lines import Line2D
 
 import MyLibrary.PreOrder as PreOrder
 import MyLibrary.BreadthFirst as BreadthFirst
@@ -51,16 +60,76 @@ class GameTree():
     self.height    = 0
     self.num_nodes = 0
 
-  def renderTree(self):
+  def renderTreeLinear(self):
     self.dict_network = {}
-    BreadthFirst.getTreeNodes(
+    BreadthFirst.getTree(
       root         = self.root,
       dict_network = self.dict_network
     )
-    plot_name = f"chopstics_tree_depth={self.max_depth}.pdf"
-    graph = Graph(nodes=self.dict_network, directed=True)
+    graph     = Graph(nodes=self.dict_network, directed=True)
+    plot_name = f"chopstics_tree_linear_depth={self.max_depth}.pdf"
     graph.plot(plot_name)
     print("Save figure:", plot_name)
+
+  def renderTreeCircular(self):
+    self.edgelist   = []
+    self.list_color = []
+    BreadthFirst.getEdgeList(
+      root       = self.root,
+      edgelist   = self.edgelist,
+      list_color = self.list_color
+    )
+    list_node_size = [
+      5 if (color == "green") or (color == "orange") else 10
+      for color in self.list_color
+    ]
+    G   = nx.from_edgelist(self.edgelist)
+    pos = nx.nx_agraph.graphviz_layout(G, prog="twopi")
+    ## adjust position of first node
+    pos[0] = (
+      0.5 * (pos[0][0] + pos[1][0]),
+      0.5 * (pos[0][1] + pos[1][1])
+    )
+    fig, ax = plt.subplots(figsize=(8, 8))
+    nx.draw(G, pos, ax=ax, node_size=0, edge_color="black", with_labels=False)
+    nx.draw(
+      G, pos,
+      ax = ax,
+      node_color = self.list_color,
+      node_size  = list_node_size,
+      width=0, alpha=1.0, with_labels=False
+    )
+    ax.set_aspect("equal")
+    self.__createLegend(ax)
+    plot_name = f"chopstics_tree_circular_depth={self.max_depth}.pdf"
+    fig.savefig(plot_name)
+    print("Save figure:", plot_name)
+
+  def __createLegend(self, ax):
+    artist_params = { "marker":"o", "linewidth":0, "markeredgecolor":"white", "markersize":5 }
+    list_legend_artists = [
+      Line2D([0], [0], color="black",  **artist_params),
+      Line2D([0], [0], color="green",  **artist_params),
+      Line2D([0], [0], color="orange", **artist_params),
+      Line2D([0], [0], color="blue",   **artist_params),
+      Line2D([0], [0], color="red",    **artist_params)
+    ]
+    list_legend_labels = [
+      r"Start",
+      r"Player 1's turn",
+      r"Player 2's turn",
+      r"Player 1 wins",
+      r"Player 2 wins"
+    ]
+    ## draw the legend
+    legend = ax.legend(
+      list_legend_artists,
+      list_legend_labels,
+      loc="upper left", bbox_to_anchor=(-0.1, 1.0), ncol=1,
+      fontsize=14, labelcolor="black", frameon=False, facecolor=None
+    )
+    ## add legend
+    ax.add_artist(legend)
 
   def saveTree(self):
     num_chars = 4*self.height + 23
@@ -74,8 +143,8 @@ class GameTree():
         bfi   = "-"
         dfi   = "-"
         if isinstance(node.name, list):
-          bfi, _ = BreadthFirst.findNodeIndex(self.root, node.name)
-          dfi, _ = PreOrder.findNodeIndex(self.root, node.name, 0)
+          bfi = BreadthFirst.getNodeIndex(self.root, node.name)
+          dfi = PreOrder.getNodeIndex(self.root, node.name, 0)
         if (node.depth == 0):
           str_player = "root"
         elif (node.depth % 2 == 1):
@@ -106,8 +175,8 @@ class GameTree():
       bfi   = "-"
       dfi   = "-"
       if isinstance(node.name, list):
-        bfi, _ = BreadthFirst.findNodeIndex(self.root, node.name)
-        dfi, _ = PreOrder.findNodeIndex(self.root, node.name, 0)
+        bfi = BreadthFirst.getNodeIndex(self.root, node.name)
+        dfi = PreOrder.getNodeIndex(self.root, node.name, 0)
       if (node.depth == 0):
         str_player = "root"
       elif (node.depth % 2 == 1):
@@ -158,7 +227,7 @@ class GameTree():
       ## check if the state has occured before
       if PreOrder.checkNodeOccurance(self.root, next_state):
         ## generate child node and inidcate it is a duplicate state
-        bfi, _ = BreadthFirst.findNodeIndex(self.root, next_state)
+        bfi = BreadthFirst.getNodeIndex(self.root, next_state)
         if BOOL_STORE_DUPLICATES:
           if BOOL_DEBUG:
             Node(f"{bfi}, {next_state}", parent=parent_node)
@@ -236,7 +305,8 @@ def main():
   game.simulate()
   game.printTree()
   game.saveTree()
-  game.renderTree()
+  game.renderTreeLinear()
+  game.renderTreeCircular()
 
 
 ## ###############################################################
