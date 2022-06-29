@@ -301,7 +301,7 @@ BOOL_DEBUG            = 0
 BOOL_STORE_DUPLICATES = 0
 
 def main():
-  game = GameTree(8)
+  game = GameTree(15)
   game.simulate()
   game.printTree()
   game.saveTree()

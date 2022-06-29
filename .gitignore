@@ -1,5 +1,6 @@
 .DS_Store
 MyLibrary/__pycache__
 
-*.png
-*.txt
+*.pdf
+# *.png
+# *.txt
