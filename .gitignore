@@ -2,5 +2,5 @@
 MyLibrary/__pycache__
 
 *.pdf
-# *.png
-# *.txt
+*.png
+*.txt
