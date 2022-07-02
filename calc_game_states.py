@@ -60,30 +60,57 @@ class GameTree():
     self.height    = 0
     self.num_nodes = 0
 
+  def computeStats(self):
+    list_color = []
+    BreadthFirst.getEdgeList(
+      root       = self.root,
+      edgelist   = [],
+      list_color = list_color
+    )
+    num_games_p1_wins = sum(
+      1 for color in list_color
+      if color.lower() == "blue"
+    )
+    num_games_p2_wins = sum(
+      1 for color in list_color
+      if color.lower() == "red"
+    )
+    num_games = PreOrder.countNumGames(self.root, 0)
+    print("Total # of games:", num_games)
+    print("Player 1 won {:d} game(s). {:.1f}% of all games.".format(
+      num_games_p1_wins,
+      100 * num_games_p1_wins / num_games
+    ))
+    print("Player 2 won {:d} game(s). {:.1f}% of all games.".format(
+      num_games_p2_wins,
+      100 * num_games_p2_wins / num_games
+    ))
+    print(" ")
+
   def renderTreeLinear(self):
-    self.dict_network = {}
+    dict_network = {}
     BreadthFirst.getTree(
       root         = self.root,
-      dict_network = self.dict_network
+      dict_network = dict_network
     )
-    graph     = Graph(nodes=self.dict_network, directed=True)
+    graph     = Graph(nodes=dict_network, directed=True)
     plot_name = f"chopstics_tree_linear_depth={self.max_depth}.png"
-    graph.plot(plot_name)
+    graph.plot(plot_name, orientation="TB")
     print("Save figure:", plot_name)
 
   def renderTreeCircular(self):
-    self.edgelist   = []
-    self.list_color = []
+    edgelist   = []
+    list_color = []
     BreadthFirst.getEdgeList(
       root       = self.root,
-      edgelist   = self.edgelist,
-      list_color = self.list_color
+      edgelist   = edgelist,
+      list_color = list_color
     )
     list_node_size = [
       5 if (color == "green") or (color == "orange") else 10
-      for color in self.list_color
+      for color in list_color
     ]
-    G   = nx.from_edgelist(self.edgelist)
+    G   = nx.from_edgelist(edgelist)
     pos = nx.nx_agraph.graphviz_layout(G, prog="twopi")
     ## adjust position of first node
     pos[0] = (
@@ -95,7 +122,7 @@ class GameTree():
     nx.draw(
       G, pos,
       ax = ax,
-      node_color = self.list_color,
+      node_color = list_color,
       node_size  = list_node_size,
       width=0, alpha=1.0, with_labels=False
     )
@@ -197,12 +224,12 @@ class GameTree():
 
   def simulate(self):
     self.root = Node([1,1,1,1])
-    self.__auxSimulateBreadthFirst(self.root)
-    # self.__auxSimulateDepthFirst(self.root, 0)
+    self.__simulateBreadthFirst(self.root)
+    # self.__simulateDepthFirst(self.root, 0)
     self.height    = self.root.height + 1
     self.num_nodes = PreOrder.countTreeNodes(self.root, 0)
 
-  def __auxSimulateBreadthFirst(
+  def __simulateBreadthFirst(
       self,
       root: Node
     ):
@@ -224,6 +251,9 @@ class GameTree():
       depth       = queue[0]["depth"]
       next_state  = queue[0]["next_state"]
       parent_node = queue[0]["parent_node"]
+      ## trim branches at a particular depth
+      if (depth+1) >= self.max_depth:
+        return
       ## check if the state has occured before
       if PreOrder.checkNodeOccurance(self.root, next_state):
         ## generate child node and inidcate it is a duplicate state
@@ -242,9 +272,6 @@ class GameTree():
       if bool_p1_lost or bool_p2_lost:
         queue.pop(0)
         continue
-      ## trim branches at a particular depth
-      if (depth+1) >= self.max_depth:
-        return
       ## identify all next possible moves
       list_next_states = getNextStates(
         state = next_state,
@@ -258,7 +285,7 @@ class GameTree():
           "parent_node": node
         })
 
-  def __auxSimulateDepthFirst(
+  def __simulateDepthFirst(
       self,
       node: Node,
       depth: int
@@ -288,7 +315,7 @@ class GameTree():
             Node("x", parent=node)
         continue
       ## find any new unique child nodes that branch off from this point
-      self.__auxSimulateDepthFirst(
+      self.__simulateDepthFirst(
         node  = Node(next_state, parent=node),
         depth = depth+1
       )
@@ -304,9 +331,10 @@ def main():
   game = GameTree(15)
   game.simulate()
   game.printTree()
-  game.saveTree()
-  game.renderTreeLinear()
-  game.renderTreeCircular()
+  game.computeStats()
+  # game.saveTree()
+  # game.renderTreeLinear()
+  # game.renderTreeCircular()
 
 
 ## ###############################################################

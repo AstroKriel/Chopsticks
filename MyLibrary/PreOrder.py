@@ -14,6 +14,20 @@ def printTree(node: Node):
   for child in node.children:
     printTree(child)
 
+def countNumGames(
+    node: Node,
+    num_games: int
+  ):
+  ## count node if it lies at the end of a branch
+  if isinstance(node.name, list):
+    if len(node.children) == 0:
+      num_games += 1
+  ## count child-nodes
+  for child in node.children:
+    num_games = countNumGames(child, num_games)
+  ## return count
+  return num_games
+
 def getTreeNodes(
     node: Node,
     dict_network: dict
