@@ -94,7 +94,7 @@ class GameTree():
       dict_network = dict_network
     )
     graph     = Graph(nodes=dict_network, directed=True)
-    plot_name = f"chopstics_tree_linear_depth={self.max_depth}.png"
+    plot_name = f"tree_linear_depth={self.max_depth}.png"
     graph.plot(plot_name, orientation="TB")
     print("Save figure:", plot_name)
 
@@ -128,7 +128,7 @@ class GameTree():
     )
     ax.set_aspect("equal")
     self.__createLegend(ax)
-    plot_name = f"chopstics_tree_circular_depth={self.max_depth}.png"
+    plot_name = f"tree_circular_depth={self.max_depth}.png"
     fig.savefig(plot_name, dpi=300)
     print("Save figure:", plot_name)
 
@@ -164,7 +164,7 @@ class GameTree():
     str_header_indxs = "(BFI), (DFI)\n"
     str_border = "=" * (len(str_header_info) + len(str_header_indxs) + 1) + "\n"
     ## write tree to file
-    file_name = f"chopstics_tree_depth={self.max_depth}.txt"
+    file_name = f"tree_depth={self.max_depth}.txt"
     with open(file_name, "w") as txt_file:
       for pre, _, node in RenderTree(self.root):
         bfi   = "-"
@@ -332,9 +332,9 @@ def main():
   game.simulate()
   game.printTree()
   game.computeStats()
-  # game.saveTree()
-  # game.renderTreeLinear()
-  # game.renderTreeCircular()
+  game.saveTree()
+  game.renderTreeLinear()
+  game.renderTreeCircular()
 
 
 ## ###############################################################
