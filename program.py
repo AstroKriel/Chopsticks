@@ -19,7 +19,7 @@ import MyLibrary.BreadthFirst as BreadthFirst
 
 
 ## ###############################################################
-## FUNCTION: GENERATE NEXT GAME STATES
+## COMPUTE ALL POSSIBLE NEXT GAME STATES
 ## ###############################################################
 def getNextStates(
     state: list,
@@ -53,7 +53,7 @@ def getNextStates(
 ## ###############################################################
 ## HANDLE GAME STATE GENERATION AND VISUALISION
 ## ###############################################################
-class GameTree():
+class Engine():
   def __init__(self, max_depth=10):
     self.root      = None
     self.max_depth = max_depth
@@ -248,36 +248,34 @@ class GameTree():
       })
     ## simulate game
     while len(queue) > 0:
-      depth       = queue[0]["depth"]
-      next_state  = queue[0]["next_state"]
-      parent_node = queue[0]["parent_node"]
+      state       = queue.pop(0)
+      depth       = state["depth"]
+      next_state  = state["next_state"]
+      parent_node = state["parent_node"]
       ## trim branches at a particular depth
       if (depth+1) >= self.max_depth:
         return
       ## check if the state has occured before
       if PreOrder.checkNodeOccurance(self.root, next_state):
-        ## generate child node and inidcate it is a duplicate state
-        bfi = BreadthFirst.getNodeIndex(self.root, next_state)
         if BOOL_STORE_DUPLICATES:
+          ## generate child node and inidcate it is a duplicate state
+          bfi = BreadthFirst.getNodeIndex(self.root, next_state)
           if BOOL_DEBUG:
             Node(f"{bfi}, {next_state}", parent=parent_node)
           else:
             Node(f"{bfi}", parent=parent_node)
-        queue.pop(0)
         continue
       node = Node(next_state, parent=parent_node)
       ## check end game requirements
       bool_p1_lost = (next_state[0] == 0) and (next_state[1] == 0)
       bool_p2_lost = (next_state[2] == 0) and (next_state[3] == 0)
       if bool_p1_lost or bool_p2_lost:
-        queue.pop(0)
         continue
       ## identify all next possible moves
       list_next_states = getNextStates(
         state = next_state,
         depth = depth
       )
-      queue.pop(0)
       for next_state in list_next_states:
         queue.append({
           "depth": depth+1,
@@ -328,13 +326,13 @@ BOOL_DEBUG            = 0
 BOOL_STORE_DUPLICATES = 0
 
 def main():
-  game = GameTree(15)
-  game.simulate()
-  game.printTree()
-  game.computeStats()
-  game.saveTree()
-  game.renderTreeLinear()
-  game.renderTreeCircular()
+  obj = Engine(15)
+  obj.simulate()
+  obj.printTree()
+  obj.computeStats()
+  obj.saveTree()
+  obj.renderTreeLinear()
+  obj.renderTreeCircular()
 
 
 ## ###############################################################
