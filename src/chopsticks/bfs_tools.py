@@ -1,7 +1,7 @@
 from anytree import Node
-from . import PreOrder
+from . import dfs_tools
 
-def traverseTree(root: Node):
+def traverse_tree(root: Node):
   queue_nodes = [root]
   while len(queue_nodes) > 0:
     this_node = queue_nodes.pop(0)
@@ -11,30 +11,7 @@ def traverseTree(root: Node):
     for child in this_node.children:
       queue_nodes.append(child)
 
-def printTreeUpToIndex(
-    root: Node,
-    node_index: int
-  ):
-  index = 0
-  queue_nodes = [root]
-  ## breadth first search through tree
-  while len(queue_nodes) > 0:
-    this_node = queue_nodes.pop(0)
-    ## check if the node contents is valid
-    bool_node_valid = isinstance(this_node.name, list)
-    if bool_node_valid:
-      print(index, this_node.name)
-    ## check if the desired node index has been reached
-    if node_index == index:
-      return
-    ## increment the node index
-    if bool_node_valid:
-      index += 1
-    ## check child-nodes and remove parent
-    for child in this_node.children:
-      queue_nodes.append(child)
-
-def getNodeIndex(
+def get_node_index(
     root: Node,
     ref_node_name: list
   ):
@@ -55,7 +32,7 @@ def getNodeIndex(
       queue_nodes.append(child)
   return None
 
-def getTree(
+def get_tree(
     root: Node,
     dict_network: dict
   ):
@@ -75,7 +52,7 @@ def getTree(
           saveNode(child) if isinstance(child.name, list)
           ## and the first instance of repeated nodes 
           else saveNode(
-            getNodeAtIndex(root, int(child.name))
+            get_node_at_index(root, int(child.name))
           )
           for child in this_node.children
         ]
@@ -84,7 +61,7 @@ def getTree(
     for child in this_node.children:
       queue_nodes.append(child)
 
-def getEdgeList(
+def get_edge_list(
     root: Node,
     edgelist: list,
     list_color: list
@@ -98,8 +75,8 @@ def getEdgeList(
     if isinstance(this_node.name, list):
       for child in this_node.children:
         ## append current node connection to children
-        edgelist.append((parent_bfi, getNodeIndex(root, child.name)))
-        child_dfi = PreOrder.getNodeIndex(root, child.name, 0)
+        edgelist.append((parent_bfi, get_node_index(root, child.name)))
+        child_dfi = dfs_tools.get_node_index(root, child.name, 0)
         ## color child node
         if [0, 0] == child.name[:2]: list_color.append("red") # player 1 loses
         elif [0, 0] == child.name[2:]: list_color.append("blue") # player 2 loses
@@ -110,7 +87,7 @@ def getEdgeList(
     for child in this_node.children:
       queue_nodes.append(child)
 
-def getNodeAtIndex(
+def get_node_at_index(
     root: Node,
     ref_index: int
   ):

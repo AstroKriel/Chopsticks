@@ -1,20 +1,13 @@
 from anytree import Node
 
-def traverseTree(node: Node):
+def traverse_tree(node: Node):
   ## work with current node
   node.name
   ## look at child-nodes
   for child in node.children:
-    traverseTree(child)
+    traverse_tree(child)
 
-def printTree(node: Node):
-  ## print current node
-  print(node.name)
-  ## print children
-  for child in node.children:
-    printTree(child)
-
-def countNumGames(
+def count_num_of_games(
     node: Node,
     num_games: int
   ):
@@ -24,27 +17,11 @@ def countNumGames(
       num_games += 1
   ## count child-nodes
   for child in node.children:
-    num_games = countNumGames(child, num_games)
+    num_games = count_num_of_games(child, num_games)
   ## return count
   return num_games
 
-def getTreeNodes(
-    node: Node,
-    dict_network: dict
-  ):
-  ## append current node connection to children
-  dict_network.update({
-    str(node.name): [
-      str(child.name)
-      for child in node.children
-      if isinstance(child.name, list)
-    ]
-  })
-  ## append child-nodes
-  for child in node.children:
-    getTreeNodes(child, dict_network)
-
-def countTreeNodes(
+def count_tree_nodes(
     node: Node,
     num_nodes: int
   ):
@@ -53,11 +30,11 @@ def countTreeNodes(
     num_nodes += 1
   ## count child-nodes
   for child in node.children:
-    num_nodes = countTreeNodes(child, num_nodes)
+    num_nodes = count_tree_nodes(child, num_nodes)
   ## return count
   return num_nodes
 
-def getNodeIndex(
+def get_node_index(
     node: Node,
     ref_hands: list,
     index: int
@@ -70,13 +47,13 @@ def getNodeIndex(
     index += 1
   ## check if the contents of any of the child-nodes match the reference
   for child in node.children:
-    child_index = getNodeIndex(child, ref_hands, index)
+    child_index = get_node_index(child, ref_hands, index)
     if child_index is not None:
       return child_index
   ## none of the nodes matched the reference
   return None
 
-def checkNodeOccurance(
+def check_node_occurance(
     node: Node,
     ref_hands: list
   ):
@@ -85,7 +62,7 @@ def checkNodeOccurance(
     return True
   ## check if the contents of any of the child-nodes match the reference
   for child in node.children:
-    if checkNodeOccurance(child, ref_hands):
+    if check_node_occurance(child, ref_hands):
       return True
   ## none of the nodes matched the reference
   return False
